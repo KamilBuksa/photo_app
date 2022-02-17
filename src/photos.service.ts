@@ -17,24 +17,17 @@ export class PhotosService {
     ) {}
 
     handleUserCreated(data) {
+
         console.log('handlerUserCreated - PHOTOS', data);
 
 
     }
 
+    // take photo and save in uploads/files
+    //@TODO add UUID:v4 to photo upload path dir like:  uploads/files/uuid/3.png  and return UUID
    async getPhotoMessage(buffer){
-
         console.log('message DZIAŁA')
-        console.log( buffer)
-        // fs.writeFileSync(
-        //     `uploads/files/1`, buffer)
-
        fs.appendFileSync(`uploads/files/3.png`, Buffer.from(buffer));
-      // await  writeFile(
-      //       `uploads/files/3.png`, `<Buffer ${buffer}>`, {
-      //           encoding: '7bit',
-      //     })
-
     }
 
 

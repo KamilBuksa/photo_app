@@ -1,9 +1,7 @@
-import {Body, Controller, Delete, Get, Param, Post, } from '@nestjs/common';
+import {Body, Controller, Delete, Get, Param, Post, Req,} from '@nestjs/common';
 import {PhotosService} from "./photos.service";
 import {EventPattern, MessagePattern} from "@nestjs/microservices";
-import {CreateUserEvent} from "./create-user-event";
-import {CreatePhotoDto} from "./dto/create-photo.dto";
-// import {PhotosService} from "./photos.service";
+import {Request} from "express";
 
 @Controller()
 export class PhotosController {
@@ -14,17 +12,15 @@ export class PhotosController {
     //    article data
     }
     @EventPattern('user_created')
-    handleUserCreated(data) {
-        console.log('data')
+    handleUserCreated(data, ) {
         this.photosService.handleUserCreated(data);
     }
 log(){
     console.log('tutaj wywołanie requsta z article')
 }
+//odbierz ładunek od sharezone i zapisz zdjęcie
     @MessagePattern({ cmd: 'get_photos' })
     getPhotoMessage(@Body() body) {
-        // console.log(body.fileData.buffer.data)
-        // console.log('weszło')
         return this.photosService.getPhotoMessage(body.fileData.buffer.data);
     }
 

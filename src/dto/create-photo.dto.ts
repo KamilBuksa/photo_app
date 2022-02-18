@@ -1,4 +1,4 @@
-import {IsString} from "class-validator";
+import {IsNumber, IsString} from "class-validator";
 
 export class CreatePhotoDto {
 
@@ -14,9 +14,12 @@ export class CreatePhotoDto {
 
 
     @IsString()
-    email: string
+    fullPath: String
 
     @IsString()
-    password:string
+    photoName: String
+
+    @IsNumber()
+    articleId:number
 
 }

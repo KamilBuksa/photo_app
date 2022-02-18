@@ -14,9 +14,15 @@ export class Photo {
     @Column()
     fullPath: String
 
-    @Column()
-    photoIndex: String
+    // @Column()
+    // photoIndex: String
 
     @Column()
     photoName: String
+
+    @Column()
+    articleId: number
+
+
+
 }

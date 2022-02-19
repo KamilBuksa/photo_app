@@ -14,6 +14,7 @@ export class Photo {
     @Column()
     fullPath: String
 
+
     // @Column()
     // photoIndex: String
 

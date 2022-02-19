@@ -34,6 +34,17 @@ export class PhotosController {
         return this.photosService.getPhotoMessage(body.fileData.buffer.data, body.fileData.originalname, body.articleId);
     }
 
+    @MessagePattern({cmd: 'delete_photo'})
+    async deletePhotoMessage(@Body() body,
+    ) {
+        return this.photosService.deletePhotoMessage(body)
+    }
+
+    @MessagePattern({cmd: 'download_photo'})
+    async downloadPhotoMessage(@Body() body, ){
+        console.log(body)
+        return this.photosService.downloadPhotoMessage(body)
+    }
 
     @Post('files')
     uploadPhoto() {

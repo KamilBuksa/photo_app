@@ -3,12 +3,16 @@ import {Repository} from "typeorm";
 import {Photo} from "./entities/photo.entity";
 import {InjectRepository} from "@nestjs/typeorm";
 import * as path from "path";
-import {CreateUserEvent} from "./create-user-event";
 import {CreatePhotoDto} from "./dto/create-photo.dto";
 import * as fs from "fs";
 // import fs from "fs";
 const {mkdir, writeFile} = require('fs').promises;
 import {v4 as uuid} from 'uuid';
+import {rm} from "fs/promises";
+import {Response} from "express";
+// import * as http from "http";
+const http = require('http');
+
 
 @Injectable()
 export class PhotosService {
@@ -32,29 +36,28 @@ export class PhotosService {
     async getPhotoMessage(buffer, fileName, articleId) {
         console.log('message DZIAŁA')
         const uuidPath = uuid()
-        console.log(uuidPath)
-        console.log('fileName', fileName)
-        //create dir with uuidPath name
 
         //create dir with uuid
         const fs = require('fs');
-        const dir = `./uploads/files/${uuidPath}`;
+        const dir = `./uploads/files/${articleId}ar-${uuidPath}`;
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, {recursive: true});
         }
-//save file.png in uuid folder created above
-        fs.appendFileSync(`./uploads/files/${uuidPath}/${fileName}`, Buffer.from(buffer));
+        //save file.png in uuid folder created above
+        fs.appendFileSync(`./uploads/files/${articleId}ar-${uuidPath}/${fileName}`, Buffer.from(buffer));
 
-        const pathToFile = path.join(__dirname, '..', 'uploads', `${uuidPath}`, `${fileName}`);
+        // const pathToFile = path.join(__dirname, '..', 'uploads', `${uuidPath}`, `${fileName}`);
         const photoName = fileName
-        const fullPath = `./uploads/files/${uuidPath}/${fileName}`
+        const fullPath = `./uploads/files/${articleId}ar-${uuidPath}/${fileName}`
+        const photoIndex = `./uploads/files/${articleId}ar-${uuidPath}`
+        console.log(fullPath)
 
 
         //save in data base
         const newRecipe = await this.photoRepository.create({
             fullPath,
             photoName,
-            articleId
+            articleId,
 
         })
         await this.photoRepository.save(newRecipe)
@@ -65,6 +68,38 @@ export class PhotosService {
         }
     }
 
+    async deletePhotoMessage(body) {
+        console.log('deletePhotoMessage', body.id)
+        const photo = await this.photoRepository.findOne({where: {articleId: body.id}});
+
+        //remove photo dir, pierwsz cyfra uuid to Id artykułu np. "7ar-uuid"
+        const photoUuid = photo.fullPath.split('/')[3];
+        const pathToDeletePhoto = `./uploads/files/${photoUuid}`
+        await rm(pathToDeletePhoto, {
+            recursive: true,
+        });
+
+
+        console.log('PHOTOOOOOO', photo)
+        return this.photoRepository.remove(photo);
+
+
+    }
+
+
+    async downloadPhotoMessage(body, ) {
+
+        console.log('downloadPhotoMessage', body)
+        const findPhoto = await this.photoRepository.findOne({where: {articleId: body.id}});
+        const pathToDownloadPhoto = path.join(__dirname, '..', `${findPhoto.fullPath}`);
+
+
+        // const file = fs.createWriteStream("file.jpg");
+        // const request = http.get(pathToDownloadPhoto, function(response) {
+        //     response.pipe(file);
+        // });
+       // return res.download(pathToDownloadPhoto)
+    }
 
     async uploadFile(photo: string) {
     }

@@ -5,6 +5,7 @@ import {TypeOrmModule} from "@nestjs/typeorm";
 import {Photo} from "./entities/photo.entity";
 import {ConfigModule, ConfigService} from "@nestjs/config";
 import appConfig from './config/app.config';
+import {Transport} from "@nestjs/microservices";
 
 @Module({
   imports:[
@@ -27,8 +28,9 @@ import appConfig from './config/app.config';
     })
 
   ],
-  controllers: [PhotosController],
-  providers: [PhotosService]
+  controllers: [PhotosController,],
+  providers: [PhotosService,],
+  exports: []
 })
 export class PhotosModule {}
 

@@ -24,7 +24,6 @@ export class PhotosService {
 
 
     // take photo and save in uploads/files
-    //@TODO add UUID:v4 to photo upload path dir like:  uploads/files/uuid/3.png  and return UUID
     async getPhotoMessage(buffer, fileName, articleId) {
         console.log('message DZIAŁA')
         const uuidPath = uuid()
@@ -112,9 +111,6 @@ export class PhotosService {
 
         // add new updated photo to dir
         await writeFileSync(newPath, Buffer.from(buffer));
-
-
-
 
         //update file name to new file name and fullPath to newPath in database
         const check = await this.photoRepository.createQueryBuilder()

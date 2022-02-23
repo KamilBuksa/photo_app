@@ -2,7 +2,6 @@ import {Body, Controller, Delete, Get, Param, Post, Req, Res,} from '@nestjs/com
 import {PhotosService} from "./photos.service";
 import { MessagePattern} from "@nestjs/microservices";
 
-import {CreatePhotoDto} from "./dto/create-photo.dto";
 
 @Controller()
 export class PhotosController {
@@ -23,7 +22,6 @@ export class PhotosController {
     async getPhotoMessage(
         //validation to body is exeuted in sharezone app
         @Body() body,
-        createPhotoDtoDto: CreatePhotoDto
     ) {
         console.log(body)
         return this.photosService.getPhotoMessage(body.fileData.buffer.data, body.fileData.originalname, body.articleId);
@@ -47,20 +45,6 @@ export class PhotosController {
 
     }
 
-    @Post('files')
-    uploadPhoto() {
-        console.log('weszło')
-    }
-
-    @Get('download/:directoryIndex/:fileName')
-    downloadPhoto() {
-        console.log('weszło2')
-    }
-
-    @Delete('/delete/:directoryIndex')
-    deletePhotoWithDirectory() {
-        console.log('weszło3')
-    }
 
 
 }

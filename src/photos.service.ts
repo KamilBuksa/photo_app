@@ -1,35 +1,27 @@
-import {Injectable} from '@nestjs/common';
+import {Inject, Injectable} from '@nestjs/common';
 import {Repository} from "typeorm";
 import {Photo} from "./entities/photo.entity";
 import {InjectRepository} from "@nestjs/typeorm";
 import * as path from "path";
-import {CreatePhotoDto} from "./dto/create-photo.dto";
-import * as fs from "fs";
-// import fs from "fs";
-const {mkdir, writeFile} = require('fs').promises;
+
 import {v4 as uuid} from 'uuid';
 import {rm} from "fs/promises";
-import {Response} from "express";
-// import * as http from "http";
-const http = require('http');
+import {ClientProxy} from "@nestjs/microservices";
+import {existsSync, mkdirSync, writeFileSync} from "fs";
+
+const fs = require('fs');
 
 
 @Injectable()
 export class PhotosService {
-    private ar: any[] = []
 
     constructor(
         @InjectRepository(Photo)
-        private readonly photoRepository: Repository<Photo>
+        private readonly photoRepository: Repository<Photo>,
+        @Inject('ARTICLES') private readonly articlesClient: ClientProxy
     ) {
     }
 
-    handleUserCreated(data) {
-
-        console.log('handlerUserCreated - PHOTOS', data);
-        this.ar.push(data)
-
-    }
 
     // take photo and save in uploads/files
     //@TODO add UUID:v4 to photo upload path dir like:  uploads/files/uuid/3.png  and return UUID
@@ -38,18 +30,16 @@ export class PhotosService {
         const uuidPath = uuid()
 
         //create dir with uuid
-        const fs = require('fs');
         const dir = `./uploads/files/${articleId}ar-${uuidPath}`;
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, {recursive: true});
         }
         //save file.png in uuid folder created above
-        fs.appendFileSync(`./uploads/files/${articleId}ar-${uuidPath}/${fileName}`, Buffer.from(buffer));
+        await fs.appendFileSync(`./uploads/files/${articleId}ar-${uuidPath}/${fileName}`, Buffer.from(buffer));
 
         // const pathToFile = path.join(__dirname, '..', 'uploads', `${uuidPath}`, `${fileName}`);
         const photoName = fileName
-        const fullPath = `./uploads/files/${articleId}ar-${uuidPath}/${fileName}`
-        const photoIndex = `./uploads/files/${articleId}ar-${uuidPath}`
+        const fullPath = `.\\uploads\\files\\${articleId}ar-${uuidPath}\\${fileName}`
         console.log(fullPath)
 
 
@@ -69,43 +59,77 @@ export class PhotosService {
     }
 
     async deletePhotoMessage(body) {
-        console.log('deletePhotoMessage', body.id)
-        const photo = await this.photoRepository.findOne({where: {articleId: body.id}});
+        if (await this.photoRepository.findOne({where: {articleId: body.id}})) {
+            console.log('deletePhotoMessage', body.id)
+            const photo = await this.photoRepository.findOne({where: {articleId: body.id}});
 
-        //remove photo dir, pierwsz cyfra uuid to Id artykułu np. "7ar-uuid"
-        const photoUuid = photo.fullPath.split('/')[3];
-        const pathToDeletePhoto = `./uploads/files/${photoUuid}`
-        await rm(pathToDeletePhoto, {
-            recursive: true,
-        });
+            //remove photo dir, pierwsz cyfra uuid to Id artykułu np. "7ar-uuid"
+            const photoUuid = photo.fullPath.split('\\')[3];
+            const pathToDeletePhoto = `./uploads/files/${photoUuid}`
 
-
-        console.log('PHOTOOOOOO', photo)
-        return this.photoRepository.remove(photo);
-
-
+            if (existsSync(pathToDeletePhoto)) {
+                await rm(pathToDeletePhoto, {
+                    recursive: true,
+                });
+            }
+            return this.photoRepository.remove(photo);
+        } else {
+            return undefined
+        }
     }
 
 
-    async downloadPhotoMessage(body, ) {
-
+    async downloadPhotoMessage(body,) {
         console.log('downloadPhotoMessage', body)
         const findPhoto = await this.photoRepository.findOne({where: {articleId: body.id}});
         const pathToDownloadPhoto = path.join(__dirname, '..', `${findPhoto.fullPath}`);
+        console.log('weszło')
 
-
-        // const file = fs.createWriteStream("file.jpg");
-        // const request = http.get(pathToDownloadPhoto, function(response) {
-        //     response.pipe(file);
-        // });
-       // return res.download(pathToDownloadPhoto)
+        //wysłanie scieżki do apki article
+        return this.articlesClient.emit({cmd: 'download_photo2'}, {pathToDownloadPhoto});
     }
 
-    async uploadFile(photo: string) {
+
+    async updatePhotoMessage(buffer, fileName, id) {
+
+        const findRow = await this.photoRepository.findOne({articleId: id});
+
+        const oldPath = findRow.fullPath.split('\\')
+        const newPath = path.join(`./+${oldPath[0]}`, `${oldPath[1]}`, `${oldPath[2]}`, `${oldPath[3]}`, `${fileName}`).substring(1)
+        const removePath = path.join(`./+${oldPath[0]}`, oldPath[1], oldPath[2], oldPath[3], '').substring(1)
+
+        //remove old dir
+        console.log('first exists', existsSync(removePath))
+        if (existsSync(removePath)) {
+            await rm(removePath, {recursive: true});
+        }
+
+        //make new dir withe old name
+        console.log('second exists', existsSync(removePath))
+        if (!existsSync(removePath)) {
+            mkdirSync(removePath, {recursive: true});
+        }
+
+        // add new updated photo to dir
+        await writeFileSync(newPath, Buffer.from(buffer));
+
+
+
+
+        //update file name to new file name and fullPath to newPath in database
+        const check = await this.photoRepository.createQueryBuilder()
+            .update()
+            .set({
+                photoName: fileName,
+                fullPath: newPath
+            })
+            .where({articleId: id})
+            .execute()
+
+        console.log(check)
+
+        return true
     }
 
-    async downloadFile(req, res, next) {
-
-    }
 
 }

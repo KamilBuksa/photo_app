@@ -1,8 +1,7 @@
 import {Body, Controller, Delete, Get, Param, Post, Req, Res,} from '@nestjs/common';
 import {PhotosService} from "./photos.service";
-import {EventPattern, MessagePattern} from "@nestjs/microservices";
-import {Request, Response} from "express";
-import * as path from "path";
+import { MessagePattern} from "@nestjs/microservices";
+
 import {CreatePhotoDto} from "./dto/create-photo.dto";
 
 @Controller()
@@ -14,10 +13,6 @@ export class PhotosController {
         //    article data
     }
 
-    @EventPattern('user_created')
-    handleUserCreated(data,) {
-        this.photosService.handleUserCreated(data);
-    }
 
     log() {
         console.log('tutaj wywołanie requsta z article')
@@ -42,8 +37,14 @@ export class PhotosController {
 
     @MessagePattern({cmd: 'download_photo'})
     async downloadPhotoMessage(@Body() body, ){
-        console.log(body)
-        return this.photosService.downloadPhotoMessage(body)
+        return  this.photosService.downloadPhotoMessage(body)
+    }
+
+    @MessagePattern({cmd: 'update_photo'})
+    updatePhotoMessage(@Body() body){
+
+        return  this.photosService.updatePhotoMessage(body.files[0].buffer.data, body.files[0].originalname, body.id);
+
     }
 
     @Post('files')

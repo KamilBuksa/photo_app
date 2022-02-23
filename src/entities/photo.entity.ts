@@ -12,14 +12,14 @@ export class Photo {
     // updatedAt:Date
 
     @Column()
-    fullPath: String
+    fullPath: string
 
 
     // @Column()
     // photoIndex: String
 
     @Column()
-    photoName: String
+    photoName: string
 
     @Column()
     articleId: number

@@ -5,7 +5,7 @@ import {TypeOrmModule} from "@nestjs/typeorm";
 import {Photo} from "./entities/photo.entity";
 import {ConfigModule, ConfigService} from "@nestjs/config";
 import appConfig from './config/app.config';
-import {Transport} from "@nestjs/microservices";
+import {ClientsModule, Transport} from "@nestjs/microservices";
 
 @Module({
   imports:[
@@ -24,8 +24,21 @@ import {Transport} from "@nestjs/microservices";
         autoLoadEntities: true,
         synchronize: true,
         // entities:[Photo]
-      }),
-    })
+      })
+    }),
+
+  //    TEST
+    ClientsModule.register([
+      {
+        name: 'ARTICLES',
+        transport: Transport.TCP,
+        options: {
+          port:3000
+        }
+      }
+    ])
+    //    TEST
+
 
   ],
   controllers: [PhotosController,],

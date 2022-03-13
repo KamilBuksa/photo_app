@@ -25,7 +25,7 @@ export class PhotosService {
 
 
     // save photo
-    async savePhoto(buffer, fileName, articleId) {
+    async savePhoto(buffer, fileName:string, articleId:number) {
         console.log(buffer)
         console.log(fileName)
 
@@ -67,7 +67,7 @@ export class PhotosService {
 
 
 
-    async deletePhotoMessage_TEST(photoId) {
+    async deletePhotoMessage(photoId:number) {
         const photo = await this.photoRepository.findOne({id: photoId});
 
         const photoUuid = photo.fullPath.split('\\')[3];
@@ -85,7 +85,7 @@ export class PhotosService {
     }
 
 
-    async downloadPhotoMessage(body,) {
+    async downloadPhotoMessage(body:{ photoId: number },) {
         console.log('downloadPhotoMessage', body)
         const findPhoto = await this.photoRepository.findOne({where: {id: body.photoId}});
         console.log(findPhoto)
@@ -97,7 +97,12 @@ export class PhotosService {
     }
 
 
-    async updatePhotoMessage(buffer, fileName, photoId) {
+    async updatePhotoMessage(buffer:any, fileName:string, photoId:number) {
+        console.log(    buffer)
+        console.log( buffer instanceof Buffer)
+        console.log(typeof fileName)
+        console.log(typeof photoId)
+
 
         const findRow = await this.photoRepository.findOne({id: photoId});
 

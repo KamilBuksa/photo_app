@@ -57,6 +57,48 @@ export class PhotosService {
         }
     }
 
+
+    // save photo
+    async savePhoto(buffer, fileName, articleId) {
+        console.log(buffer)
+        console.log(fileName)
+
+        console.log('message DZIAŁA')
+        const uuidPath = uuid()
+
+        //create dir with uuid
+        const dir = `./uploadsTEST/files/${uuidPath}`;
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, {recursive: true});
+        }
+        //save file.png in uuid folder created above
+        await fs.appendFileSync(`./uploadsTEST/files/${uuidPath}/${fileName}`, Buffer.from(buffer));
+
+        // save file data in photo table
+        const photoName = fileName
+        const fullPath = `.\\uploads\\files\\${uuidPath}\\${fileName}`
+        console.log(fullPath)
+
+
+        //save in data base
+        const newRecipe = await this.photoRepository.create({
+            fullPath,
+            photoName,
+        })
+        const createPhoto = await this.photoRepository.save(newRecipe);
+        const photoId = createPhoto.id;
+
+
+        //send data photoId to article.service
+        this.articlesClient.emit({cmd: 'add_photoId'}, {photoId, articleId});
+
+        return {
+            uuid: uuidPath,
+            filePath: fullPath
+        }
+    }
+
+
     async deletePhotoMessage(body) {
         if (await this.photoRepository.findOne({where: {articleId: body.id}})) {
             console.log('deletePhotoMessage', body.id)

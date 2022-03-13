@@ -7,15 +7,9 @@ import { MessagePattern} from "@nestjs/microservices";
 export class PhotosController {
     constructor(
         private readonly photosService: PhotosService
-    ) {
-        this.log()
-        //    article data
-    }
+    ) {}
 
 
-    log() {
-        console.log('tutaj wywołanie requsta z article')
-    }
 
 //odbierz ładunek od sharezone i zapisz zdjęcie
     @MessagePattern({cmd: 'get_photos'})
@@ -25,6 +19,15 @@ export class PhotosController {
     ) {
         console.log(body)
         return this.photosService.getPhotoMessage(body.fileData.buffer.data, body.fileData.originalname, body.articleId);
+    }
+
+    // Odbierz ładunek i zapisz zdjęcie, przekaż photoId do tabeli article
+    @MessagePattern({cmd:'save_photo'})
+    async savePhoto (
+        @Body() body,
+    ){
+        console.log(body)
+        return this.photosService.savePhoto(body.fileData.buffer.data, body.fileData.originalname, body.articleId)
     }
 
     @MessagePattern({cmd: 'delete_photo'})

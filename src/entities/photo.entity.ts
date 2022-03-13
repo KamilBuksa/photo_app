@@ -21,7 +21,7 @@ export class Photo {
     @Column()
     photoName: string
 
-    @Column()
+    @Column({nullable:true})
     articleId: number
 
 

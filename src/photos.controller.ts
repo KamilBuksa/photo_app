@@ -1,46 +1,59 @@
-import {Body, Controller, Delete, Get, Param, Post, Req, Res,} from '@nestjs/common';
-import {PhotosService} from "./photos.service";
-import {MessagePattern} from "@nestjs/microservices";
+import {
+  Controller,
+  Delete,
+  Get,
+  Param, ParseIntPipe, Patch,
+  Post,
+  Res,
+  UploadedFiles,
+  UseGuards,
+  UseInterceptors
+} from "@nestjs/common";
+import { PhotosService } from "./photos.service";
+import { ApiKeyGuard } from "./api-key.guard";
+import { AnyFilesInterceptor } from "@nestjs/platform-express";
+import { Response } from "express";
 
 
-@Controller()
+@Controller("photos")
 export class PhotosController {
-    constructor(
-        private readonly photosService: PhotosService
-    ) {
-    }
+  constructor(
+    private readonly photosService: PhotosService
+  ) {
+  }
+  @UseGuards(ApiKeyGuard)
+  @Post()
+  @UseInterceptors(AnyFilesInterceptor())
+  async sendPhoto(
+    @UploadedFiles() files: Array<Express.Multer.File>
+  ) {
+    return this.photosService.sendPhoto(files);
+  }
 
-    // Odbierz ładunek i zapisz zdjęcie, przekaż photoId do tabeli article
-    @MessagePattern({cmd: 'save_photo'})
-    async savePhoto(
-        @Body() body: any,
-    ) {
-        console.log(body)
-        return this.photosService.savePhoto(body.fileData.buffer.data, body.fileData.originalname, body.articleId)
-    }
+  @Get(":photoId")
+  downloadPhoto(
+    @Param("photoId", ParseIntPipe) id: number,
+    @Res() res: Response
+  ) {
+    return this.photosService.downloadPhoto(id, res);
+  }
 
+  @UseInterceptors(AnyFilesInterceptor())
+  @Patch(":photoId")
+  updatePhoto(
+    @Param("photoId", ParseIntPipe) id: number,
+    @UploadedFiles() files: Array<Express.Multer.File>
+  ) {
+    return this.photosService._updatePhoto(id, files);
+  }
 
-    @MessagePattern({cmd: 'delete_photo'})
-    async deletePhotoMessage(@Body('photoId') photoId: number,
-    ) {
-        return this.photosService.deletePhotoMessage(photoId)
-    }
+  @Delete(":photoId")
+  deletePhoto(
+    @Param("photoId", ParseIntPipe) id: number
+  ) {
+    return this.photosService.deletePhoto(id);
+  }
 
-    @MessagePattern({cmd: 'download_photo'})
-    async downloadPhotoMessage(
-        @Body() body: { photoId: number },
-    ) {
-        return this.photosService.downloadPhotoMessage(body)
-    }
-
-    @MessagePattern({cmd: 'update_photo'})
-    updatePhotoMessage(
-        @Body() body: {photoId:number, files:any}
-    ) {
-        console.log('BODYYY',body)
-        return this.photosService.updatePhotoMessage(body.files[0].buffer.data, body.files[0].originalname, body.photoId);
-
-    }
 
 
 }

@@ -6,12 +6,14 @@ import {Photo} from "./entities/photo.entity";
 import {ConfigModule, ConfigService} from "@nestjs/config";
 import appConfig from './config/app.config';
 import {ClientsModule, Transport} from "@nestjs/microservices";
+import { JwtModule } from "@nestjs/jwt";
 
 @Module({
   imports:[
     ConfigModule.forRoot({
       load: [appConfig], // 👈
     }),
+    JwtModule.register({}),
       TypeOrmModule.forFeature([Photo]),
     TypeOrmModule.forRootAsync({ // 👈
       useFactory: (configService: ConfigService) => ({
